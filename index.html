@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>UDON GALAXY</title>
+
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #080808;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .box {
+            width: 85%;
+            max-width: 400px;
+            padding: 30px;
+            background: #151515;
+            border: 2px solid red;
+            border-radius: 20px;
+            box-shadow: 0 0 30px red;
+        }
+
+        h1 {
+            color: red;
+            font-size: 32px;
+        }
+
+        button {
+            padding: 14px 25px;
+            border: none;
+            border-radius: 10px;
+            background: red;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="box">
+
+        <h1>🍜 UDON GALAXY</h1>
+
+        <p>เว็บไซต์ของภูริ</p>
+
+        <button onclick="hello()">
+            กดตรงนี้
+        </button>
+
+    </div>
+
+    <script>
+        function hello() {
+            alert("เว็บของภูริทำงานแล้ว! 🎉");
+        }
+    </script>
+
+</body>
+</html>
