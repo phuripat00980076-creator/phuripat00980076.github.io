@@ -1,74 +1,687 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>UDON GALAXY</title>
+<title>UDON GALAXY</title>
 
-    <style>
-        body {
-            margin: 0;
-            min-height: 100vh;
-            background: #080808;
-            color: white;
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-        }
+<style>
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
 
-        .box {
-            width: 85%;
-            max-width: 400px;
-            padding: 30px;
-            background: #151515;
-            border: 2px solid red;
-            border-radius: 20px;
-            box-shadow: 0 0 30px red;
-        }
+html {
+    scroll-behavior: smooth;
+}
 
-        h1 {
-            color: red;
-            font-size: 32px;
-        }
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+    color: white;
+    background:
+        radial-gradient(circle at 20% 10%, #3b0000, transparent 30%),
+        radial-gradient(circle at 80% 90%, #260000, transparent 35%),
+        #050505;
+    overflow-x: hidden;
+}
 
-        button {
-            padding: 14px 25px;
-            border: none;
-            border-radius: 10px;
-            background: red;
-            color: white;
-            font-size: 18px;
-            font-weight: bold;
-        }
+/* ดาว */
+.stars {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
 
-        button:active {
-            transform: scale(0.95);
-        }
-    </style>
+.star {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: white;
+    border-radius: 50%;
+    opacity: .7;
+    animation: twinkle 2s infinite alternate;
+}
+
+@keyframes twinkle {
+    from { opacity: .2; }
+    to { opacity: 1; }
+}
+
+/* HEADER */
+header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    padding: 14px;
+    background: rgba(5,5,5,.88);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #ff2222;
+    box-shadow: 0 0 20px rgba(255,0,0,.25);
+}
+
+.nav {
+    max-width: 1000px;
+    margin: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo {
+    font-size: 22px;
+    font-weight: bold;
+    color: #ff3333;
+    text-shadow: 0 0 12px red;
+}
+
+.nav-buttons {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.nav-buttons button {
+    background: #111;
+    color: white;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 8px 11px;
+    cursor: pointer;
+}
+
+.nav-buttons button:hover {
+    border-color: red;
+}
+
+/* CONTENT */
+main {
+    position: relative;
+    z-index: 2;
+    max-width: 1000px;
+    margin: auto;
+    padding: 35px 15px 70px;
+}
+
+.page {
+    display: none;
+    animation: fade .35s ease;
+}
+
+.page.active {
+    display: block;
+}
+
+@keyframes fade {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* HERO */
+.hero {
+    text-align: center;
+    padding: 70px 15px;
+}
+
+.hero h1 {
+    margin: 0;
+    font-size: clamp(42px, 10vw, 90px);
+    color: #ff2222;
+    text-shadow:
+        0 0 10px red,
+        0 0 30px red,
+        0 0 70px #ff0000;
+}
+
+.hero p {
+    color: #aaa;
+    font-size: 18px;
+}
+
+.card {
+    background: rgba(15,15,15,.88);
+    border: 1px solid #ff2222;
+    border-radius: 20px;
+    padding: 25px;
+    margin: 20px 0;
+    box-shadow:
+        0 0 25px rgba(255,0,0,.2),
+        inset 0 0 20px rgba(255,0,0,.03);
+}
+
+.card h2 {
+    margin-top: 0;
+    color: #ff4444;
+}
+
+/* BUTTON */
+.big-button {
+    display: inline-block;
+    padding: 15px 28px;
+    margin: 8px;
+    border: 0;
+    border-radius: 12px;
+    background: #e00000;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 0 18px rgba(255,0,0,.45);
+}
+
+.big-button:hover {
+    background: #ff2222;
+}
+
+.big-button:active {
+    transform: scale(.96);
+}
+
+/* KEY */
+.key-box {
+    text-align: center;
+}
+
+.timer {
+    font-size: 65px;
+    font-weight: bold;
+    color: #ff3333;
+    text-shadow: 0 0 20px red;
+    margin: 25px;
+}
+
+.key {
+    display: none;
+    padding: 18px;
+    margin: 20px auto;
+    max-width: 400px;
+    background: #090909;
+    border: 2px solid #ff2222;
+    border-radius: 13px;
+    color: #ff4444;
+    font-size: 30px;
+    font-weight: bold;
+    word-break: break-all;
+    box-shadow: 0 0 25px rgba(255,0,0,.35);
+}
+
+.message {
+    color: #888;
+    min-height: 25px;
+}
+
+/* FEATURES */
+.features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+}
+
+.feature {
+    background: #101010;
+    border: 1px solid #292929;
+    border-radius: 14px;
+    padding: 20px;
+    text-align: center;
+}
+
+.feature span {
+    display: block;
+    font-size: 35px;
+    margin-bottom: 8px;
+}
+
+/* UPDATE */
+.update {
+    border-left: 4px solid red;
+    padding: 12px 18px;
+    margin: 12px 0;
+    background: #111;
+}
+
+/* RAINBOW */
+.rainbow {
+    animation: rainbow 3s linear infinite;
+}
+
+@keyframes rainbow {
+    0%   { color: red; }
+    20%  { color: orange; }
+    40%  { color: yellow; }
+    60%  { color: lime; }
+    80%  { color: cyan; }
+    100% { color: violet; }
+}
+
+/* FOOTER */
+footer {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 25px;
+    border-top: 1px solid #222;
+    color: #666;
+}
+
+/* MOBILE */
+@media (max-width: 600px) {
+
+    header {
+        padding: 10px;
+    }
+
+    .nav {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .nav-buttons {
+        width: 100%;
+    }
+
+    .nav-buttons button {
+        flex: 1;
+    }
+
+    .hero {
+        padding: 45px 5px;
+    }
+
+    .card {
+        padding: 18px;
+    }
+
+    .key {
+        font-size: 24px;
+    }
+}
+</style>
 </head>
 
 <body>
 
-    <div class="box">
+<div class="stars" id="stars"></div>
 
-        <h1>🍜 UDON GALAXY</h1>
+<header>
+    <div class="nav">
 
-        <p>เว็บไซต์ของภูริ</p>
+        <div class="logo">
+            🍜 UDON GALAXY
+        </div>
 
-        <button onclick="hello()">
-            กดตรงนี้
+        <div class="nav-buttons">
+            <button onclick="showPage('home')">🏠 Home</button>
+            <button onclick="showPage('key')">🔑 Get Key</button>
+            <button onclick="showPage('update')">📢 Update</button>
+            <button onclick="showPage('about')">ℹ️ About</button>
+        </div>
+
+    </div>
+</header>
+
+<main>
+
+<!-- HOME -->
+<section id="home" class="page active">
+
+    <div class="hero">
+
+        <h1 id="title">
+            UDON GALAXY
+        </h1>
+
+        <p>
+            เว็บไซต์หลักของ UDON GALAXY 🌌
+        </p>
+
+        <button class="big-button"
+                onclick="showPage('key')">
+            🔑 รับคีย์
+        </button>
+
+        <button class="big-button"
+                onclick="toggleRainbow()">
+            🌈 Rainbow Mode
         </button>
 
     </div>
 
-    <script>
-        function hello() {
-            alert("เว็บของภูริทำงานแล้ว! 🎉");
-        }
-    </script>
+    <div class="card">
+
+        <h2>🔥 UDON GALAXY</h2>
+
+        <p>
+            ยินดีต้อนรับเข้าสู่เว็บไซต์ของภูริ
+        </p>
+
+        <div class="features">
+
+            <div class="feature">
+                <span>🔑</span>
+                ระบบคีย์
+            </div>
+
+            <div class="feature">
+                <span>📱</span>
+                Mobile Friendly
+            </div>
+
+            <div class="feature">
+                <span>🌌</span>
+                Galaxy Theme
+            </div>
+
+            <div class="feature">
+                <span>⚡</span>
+                โหลดเร็ว
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- KEY -->
+<section id="key" class="page">
+
+    <div class="card key-box">
+
+        <h2>🔑 GET KEY</h2>
+
+        <p>
+            กดปุ่มด้านล่างเพื่อรับคีย์
+        </p>
+
+        <div id="timer" class="timer">
+            3
+        </div>
+
+        <div id="keyResult" class="key">
+        </div>
+
+        <button id="getButton"
+                class="big-button"
+                onclick="startKey()">
+            🔑 รับคีย์
+        </button>
+
+        <button id="copyButton"
+                class="big-button"
+                style="display:none"
+                onclick="copyKey()">
+            📋 คัดลอก
+        </button>
+
+        <div id="message" class="message">
+            พร้อมรับคีย์
+        </div>
+
+    </div>
+
+    <div class="card">
+
+        <h2>📌 วิธีใช้งาน</h2>
+
+        <p>
+            1. กดรับคีย์
+        </p>
+
+        <p>
+            2. รอ 3 วินาที
+        </p>
+
+        <p>
+            3. กดคัดลอก
+        </p>
+
+        <p>
+            4. นำคีย์ไปใช้กับระบบของคุณ
+        </p>
+
+    </div>
+
+</section>
+
+
+<!-- UPDATE -->
+<section id="update" class="page">
+
+    <div class="card">
+
+        <h2>📢 UPDATE</h2>
+
+        <div class="update">
+            <b>V1.0</b><br>
+            เปิดตัว UDON GALAXY
+        </div>
+
+        <div class="update">
+            <b>ระบบ Key</b><br>
+            เพิ่มระบบสร้างคีย์ phuri1 - phuri100
+        </div>
+
+        <div class="update">
+            <b>Mobile</b><br>
+            ปรับเว็บไซต์ให้เหมาะกับมือถือ
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- ABOUT -->
+<section id="about" class="page">
+
+    <div class="card">
+
+        <h2>ℹ️ ABOUT</h2>
+
+        <p>
+            UDON GALAXY เป็นเว็บไซต์สำหรับโปรเจกต์ของภูริ
+        </p>
+
+        <p>
+            สร้างด้วย HTML + CSS + JavaScript
+        </p>
+
+        <p>
+            🌌 Made by Phuri
+        </p>
+
+    </div>
+
+</section>
+
+</main>
+
+
+<footer>
+    🍜 UDON GALAXY © 2026
+</footer>
+
+
+<script>
+
+/* สร้างดาว */
+const stars = document.getElementById("stars");
+
+for (let i = 0; i < 100; i++) {
+
+    const star = document.createElement("div");
+
+    star.className = "star";
+
+    star.style.left =
+        Math.random() * 100 + "%";
+
+    star.style.top =
+        Math.random() * 100 + "%";
+
+    star.style.animationDelay =
+        Math.random() * 2 + "s";
+
+    stars.appendChild(star);
+}
+
+
+/* เปลี่ยนหน้า */
+function showPage(page) {
+
+    document
+        .querySelectorAll(".page")
+        .forEach(p => {
+            p.classList.remove("active");
+        });
+
+    document
+        .getElementById(page)
+        .classList.add("active");
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+}
+
+
+/* Rainbow */
+function toggleRainbow() {
+
+    const title =
+        document.getElementById("title");
+
+    title.classList.toggle("rainbow");
+}
+
+
+/* ระบบ Key */
+let key = "";
+
+function startKey() {
+
+    const button =
+        document.getElementById("getButton");
+
+    const timer =
+        document.getElementById("timer");
+
+    const result =
+        document.getElementById("keyResult");
+
+    const message =
+        document.getElementById("message");
+
+    const copy =
+        document.getElementById("copyButton");
+
+    button.disabled = true;
+
+    result.style.display = "none";
+
+    copy.style.display = "none";
+
+    message.textContent =
+        "กำลังสร้างคีย์...";
+
+    let seconds = 3;
+
+    timer.textContent = seconds;
+
+    const countdown =
+        setInterval(() => {
+
+            seconds--;
+
+            timer.textContent = seconds;
+
+            if (seconds <= 0) {
+
+                clearInterval(countdown);
+
+                generateKey();
+
+            }
+
+        }, 1000);
+}
+
+
+function generateKey() {
+
+    const number =
+        Math.floor(Math.random() * 100) + 1;
+
+    key = "phuri" + number;
+
+    const result =
+        document.getElementById("keyResult");
+
+    const copy =
+        document.getElementById("copyButton");
+
+    const button =
+        document.getElementById("getButton");
+
+    const timer =
+        document.getElementById("timer");
+
+    const message =
+        document.getElementById("message");
+
+    result.textContent = key;
+
+    result.style.display = "block";
+
+    copy.style.display = "inline-block";
+
+    button.disabled = false;
+
+    timer.textContent = "สำเร็จ!";
+
+    message.textContent =
+        "คีย์พร้อมใช้งาน ✅";
+
+}
+
+
+async function copyKey() {
+
+    const message =
+        document.getElementById("message");
+
+    try {
+
+        await navigator.clipboard.writeText(key);
+
+        message.textContent =
+            "คัดลอกคีย์แล้ว ✅";
+
+    } catch {
+
+        message.textContent =
+            "คัดลอกไม่ได้ ให้กดค้างที่คีย์แล้วเลือกคัดลอก";
+
+    }
+
+}
+
+</script>
 
 </body>
 </html>
