@@ -1,5 +1,5 @@
 -- ==========================================
--- PHURI HUB/BLADE BALL V5
+-- PHURI HUB/BLADE BALL V5 (FIXED GHOST BALL)
 -- ==========================================
 
 local Players = game:GetService("Players")
@@ -21,10 +21,10 @@ LocalPlayer.CharacterAdded:Connect(function(newChar)
 end)
 
 -- ตัวแปรสถานะ
-local F = { AutoParry = false, PrecisionMode = true, BallESP = false, PlayerESP = false }
-local Settings = { HitboxSize = 10, PingBuffer = 0.08, ParryCooldown = 0.18 }
+local F = { AutoParry = false, PrecisionMode = true, BallESP = false, PlayerESP = false, BallOrbit = false }
+local Settings = { HitboxSize = 10, PingBuffer = 0.08, ParryCooldown = 0.18, OrbitRadius = 10, OrbitSpeed = 2.5, OrbitHeight = 3 }
 local LastParry = 0
-local LastBall = nil -- เก็บลูกบอลลูกเก่าเพื่อเช็คการเปลี่ยนลูก
+local LastBall = nil
 
 -- ==========================================
 -- PART 1: Loading Screen
@@ -41,7 +41,6 @@ loadFrame.Size = UDim2.new(1, 0, 1, 0)
 loadFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 loadFrame.BorderSizePixel = 0
 
--- ⭐️ รูปอนิเมะ (เปลี่ยน ID ตรงนี้)
 local animeImg = Instance.new("ImageLabel", loadFrame)
 animeImg.Size = UDim2.new(0, 300, 0, 300)
 animeImg.Position = UDim2.new(0.5, -150, 0.5, -180)
@@ -102,7 +101,6 @@ function LoadMainUI()
     elseif protect_gui then protect_gui(sg) sg.Parent = game:GetService("CoreGui")
     else sg.Parent = game:GetService("CoreGui") end
 
-    -- Main Frame
     local mf = Instance.new("Frame", sg)
     mf.Size = UDim2.new(0, 480, 0, 320)
     mf.Position = UDim2.new(0.5, -240, 0.5, -160)
@@ -115,7 +113,6 @@ function LoadMainUI()
     stroke.Color = Color3.fromRGB(255, 72, 92)
     stroke.Thickness = 2
 
-    -- Header
     local header = Instance.new("Frame", mf)
     header.Size = UDim2.new(1, 0, 0, 40)
     header.BackgroundColor3 = Color3.fromRGB(18, 19, 24)
@@ -132,7 +129,6 @@ function LoadMainUI()
     title.TextSize = 16
     title.TextXAlignment = Enum.TextXAlignment.Left
 
-    -- ⭐️ ปุ่มย่อ UI
     local minBtn = Instance.new("TextButton", header)
     minBtn.Size = UDim2.new(0, 30, 0, 30)
     minBtn.Position = UDim2.new(1, -75, 0, 5)
@@ -144,7 +140,6 @@ function LoadMainUI()
     minBtn.BorderSizePixel = 0
     Instance.new("UICorner", minBtn).CornerRadius = UDim.new(0, 6)
 
-    -- ⭐️ ปุ่มปิด
     local closeBtn = Instance.new("TextButton", header)
     closeBtn.Size = UDim2.new(0, 30, 0, 30)
     closeBtn.Position = UDim2.new(1, -40, 0, 5)
@@ -156,7 +151,6 @@ function LoadMainUI()
     closeBtn.BorderSizePixel = 0
     Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 6)
 
-    -- ⭐️ ปุ่มไอคอนเล็ก (ตอนย่อ)
     local smallBtn = Instance.new("TextButton", sg)
     smallBtn.Size = UDim2.new(0, 60, 0, 60)
     smallBtn.Position = UDim2.new(0, 20, 0.5, -30)
@@ -173,7 +167,6 @@ function LoadMainUI()
     smallStroke.Color = Color3.fromRGB(255, 72, 92)
     smallStroke.Thickness = 2
 
-    -- ฟังก์ชันย่อ/ขยาย
     minBtn.MouseButton1Click:Connect(function()
         mf.Visible = false
         smallBtn.Visible = true
@@ -183,7 +176,6 @@ function LoadMainUI()
         smallBtn.Visible = false
     end)
 
-    -- ทำให้ไอคอนเล็กสามารถลากได้
     local smallDragging, smallDragStart, smallStartPos = false, nil, nil
     smallBtn.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -208,7 +200,6 @@ function LoadMainUI()
         sg:Destroy()
     end)
 
-    -- Sidebar
     local sidebar = Instance.new("Frame", mf)
     sidebar.Size = UDim2.new(0, 120, 1, -50)
     sidebar.Position = UDim2.new(0, 10, 0, 45)
@@ -342,6 +333,7 @@ function LoadMainUI()
 
     createToggle(pageMain, "🛡️ Auto Parry", "AutoParry")
     createToggle(pageMain, "⚡ Precision Mode", "PrecisionMode", function(state) F.PrecisionMode = state end)
+    createToggle(pageMain, "🌀 Ball Orbit (หมุนรอบตัว)", "BallOrbit")
 
     F.PrecisionMode = true
     local precisionBtn = pageMain:GetChildren()[2]
@@ -361,6 +353,7 @@ function LoadMainUI()
     createSlider(pageSettings, "🎯 Hitbox Size", "HitboxSize", 5, 25, 10)
     createSlider(pageSettings, "📡 Ping Buffer", "PingBuffer", 0.02, 0.3, 0.08)
     createSlider(pageSettings, "⏱️ Parry Cooldown", "ParryCooldown", 0.05, 0.5, 0.18)
+    createSlider(pageSettings, "🌀 Orbit Radius", "OrbitRadius", 5, 30, 10)
 
     createToggle(pageVisual, "⚽ Ball ESP", "BallESP")
     createToggle(pageVisual, "👤 Player ESP", "PlayerESP")
@@ -370,23 +363,39 @@ function LoadMainUI()
 end
 
 -- ==========================================
--- PART 3: Auto Parry (แก้ไข)
+-- PART 3: Auto Parry + GetBall (แก้ไขบอลผี)
 -- ==========================================
 local function GetBall()
+    -- ⭐️ ป้องกันบอลผี: เช็คว่ามีตัวละครและ RootPart ไหม
+    if not RootPart or not RootPart.Parent then return nil end
+
     local balls = workspace:FindFirstChild("Balls")
     if balls then
         for _, ball in pairs(balls:GetChildren()) do
-            if ball:IsA("BasePart") then return ball end
+            -- ⭐️ เช็คว่ามันเป็น BasePart และยังอยู่ใน Workspace จริงๆ
+            if ball:IsA("BasePart") and ball:IsDescendantOf(workspace) then
+                -- ⭐️ เช็คระยะ: ถ้าอยู่ใกล้ตัวเราไม่เกิน 200 ศึกษา ถือว่าเป็นบอลจริง
+                local dist = (ball.Position - RootPart.Position).Magnitude
+                if dist <= 200 then
+                    return ball
+                end
+            end
         end
     end
+    
+    -- Fallback กรณีหาใน Balls ไม่เจอ
     for _, obj in pairs(workspace:GetChildren()) do
-        if obj:IsA("BasePart") and (obj.Name == "Ball" or obj.Name:find("Ball")) then return obj end
+        if obj:IsA("BasePart") and (obj.Name == "Ball" or obj.Name:find("Ball")) and obj:IsDescendantOf(workspace) then
+            local dist = (obj.Position - RootPart.Position).Magnitude
+            if dist <= 200 then
+                return obj
+            end
+        end
     end
     return nil
 end
 
 local function FireParry()
-    -- ⭐️ ส่ง Key Down/Up ห่างกัน 0.05 วิ (กันกดซ้ำ)
     VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F, false, game)
     task.wait(0.05)
     VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F, false, game)
@@ -399,10 +408,8 @@ RunService.RenderStepped:Connect(function()
     local ball = GetBall()
     if not ball then return end
 
-    -- ⭐️ ถ้าเป็นบอลลูกเดิมที่เพิ่งตีไป ให้ข้าม (กันกดซ้ำ)
     if ball == LastBall and tick() - LastParry < 1 then return end
 
-    -- ⭐️ เช็คว่าบอลเล็งมาที่เราจริงๆ (ถ้ามี Attribute "target")
     local target = ball:GetAttribute("target")
     if target and target ~= LocalPlayer.Name then return end
 
@@ -440,7 +447,33 @@ RunService.RenderStepped:Connect(function()
 end)
 
 -- ==========================================
--- PART 4: ESP
+-- PART 4: Ball Orbit (แก้ไขบอลผีแล้ว)
+-- ==========================================
+local orbitAngle = 0
+
+RunService.Heartbeat:Connect(function(deltaTime)
+    if not F.BallOrbit then return end
+    
+    local ball = GetBall()
+    if not ball then return end
+    
+    local char = LocalPlayer.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
+    
+    -- ⭐️ กันบอลวาร์ป: ถ้าลูกบอลอยู่ไกลเกินไป (อาจจะเป็นบอลที่เพิ่งเกิด) ให้ข้ามไปก่อน
+    if (ball.Position - hrp.Position).Magnitude > 150 then return end
+    
+    orbitAngle = orbitAngle + (math.pi * 2) * (Settings.OrbitSpeed * deltaTime)
+    
+    local offsetX = math.cos(orbitAngle) * Settings.OrbitRadius
+    local offsetZ = math.sin(orbitAngle) * Settings.OrbitRadius
+    
+    ball.CFrame = hrp.CFrame * CFrame.new(offsetX, Settings.OrbitHeight, offsetZ)
+end)
+
+-- ==========================================
+-- PART 5: ESP
 -- ==========================================
 RunService.Heartbeat:Connect(function()
     if F.BallESP then
@@ -461,11 +494,4 @@ RunService.Heartbeat:Connect(function()
                 hl.Name = "PHURI_ESP_P"
                 hl.FillColor = Color3.fromRGB(255, 100, 0)
                 hl.OutlineColor = Color3.fromRGB(255, 255, 255)
-                hl.FillTransparency = 0.5
-                hl.Parent = p.Character
-            end
-        end
-    end
-end)
-
-print("PHURI HUB/BLADE BALL V5 โหลดสำเร็จ!")
+              
