@@ -1,0 +1,389 @@
+-- ==========================================
+-- PHURI HUB/BLADE BALL V4 (Paid Script Style)
+-- ==========================================
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local TweenService = game:GetService("TweenService")
+
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local RootPart = Character:WaitForChild("HumanoidRootPart")
+
+LocalPlayer.CharacterAdded:Connect(function(newChar)
+    Character = newChar
+    Humanoid = newChar:WaitForChild("Humanoid")
+    RootPart = newChar:WaitForChild("HumanoidRootPart")
+end)
+
+-- ⭐️ ตัวแปรโหลด
+local F = {
+    AutoParry = false,
+    PrecisionMode = true,
+    BallESP = false,
+    PlayerESP = false,
+}
+local Settings = {
+    HitboxSize = 10,
+    PingBuffer = 0.08,
+    ParryCooldown = 0.18,
+}
+local LastParry = 0
+
+-- ==========================================
+-- ⭐️ PART 1: สร้าง Loading Screen
+-- ==========================================
+local loadingGui = Instance.new("ScreenGui")
+loadingGui.Name = "PHURI_LOADING"
+loadingGui.ResetOnSpawn = false
+
+-- ซ่อน UI อย่างปลอดภัย
+if gethui then loadingGui.Parent = gethui()
+elseif syn and syn.protect_gui then syn.protect_gui(loadingGui) loadingGui.Parent = game:GetService("CoreGui")
+elseif protect_gui then protect_gui(loadingGui) loadingGui.Parent = game:GetService("CoreGui")
+else loadingGui.Parent = game:GetService("CoreGui") end
+
+local loadFrame = Instance.new("Frame", loadingGui)
+loadFrame.Size = UDim2.new(1, 0, 1, 0)
+loadFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+loadFrame.BorderSizePixel = 0
+
+-- ⭐️ รูปอนิเมะ (⚠️ เปลี่ยน ID ตรงนี้เป็นรูปที่พี่ชอบ)
+local animeImg = Instance.new("ImageLabel", loadFrame)
+animeImg.Size = UDim2.new(0, 300, 0, 300)
+animeImg.Position = UDim2.new(0.5, -150, 0.5, -180)
+animeImg.BackgroundTransparency = 1
+animeImg.Image = "rbxassetid://1512279986" -- ⭐️ เปลี่ยน ID รูปอนิเมะตรงนี้
+animeImg.ScaleType = Enum.ScaleType.Fit
+
+-- ⭐️ ชื่อ PHURI HUB
+local loadTitle = Instance.new("TextLabel", loadFrame)
+loadTitle.Size = UDim2.new(1, 0, 0, 60)
+loadTitle.Position = UDim2.new(0, 0, 0.5, 130)
+loadTitle.BackgroundTransparency = 1
+loadTitle.Text = "PHURI HUB"
+loadTitle.TextColor3 = Color3.fromRGB(255, 72, 92)
+loadTitle.Font = Enum.Font.GothamBlack
+loadTitle.TextSize = 45
+loadTitle.TextStrokeTransparency = 0.3
+
+-- ⭐️ แถบโหลด
+local barBg = Instance.new("Frame", loadFrame)
+barBg.Size = UDim2.new(0, 300, 0, 6)
+barBg.Position = UDim2.new(0.5, -150, 0.5, 200)
+barBg.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+barBg.BorderSizePixel = 0
+Instance.new("UICorner", barBg).CornerRadius = UDim.new(1, 0)
+
+local barFill = Instance.new("Frame", barBg)
+barFill.Size = UDim2.new(0, 0, 1, 0)
+barFill.BackgroundColor3 = Color3.fromRGB(255, 72, 92)
+barFill.BorderSizePixel = 0
+Instance.new("UICorner", barFill).CornerRadius = UDim.new(1, 0)
+
+-- ⭐️ อนิเมชันโหลด
+task.spawn(function()
+    task.wait(0.5)
+    TweenService:Create(barFill, TweenInfo.new(2, Enum.EasingStyle.Quad), {Size = UDim2.new(1, 0, 1, 0)}):Play()
+    task.wait(2.5)
+    
+    -- ค่อยๆ จางหายไป
+    TweenService:Create(loadFrame, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+    TweenService:Create(animeImg, TweenInfo.new(0.5), {ImageTransparency = 1}):Play()
+    TweenService:Create(loadTitle, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
+    TweenService:Create(barBg, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+    TweenService:Create(barFill, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+    
+    task.wait(0.6)
+    loadingGui:Destroy()
+    
+    -- ⭐️ เรียกฟังก์ชันสร้าง UI หลัก
+    LoadMainUI()
+end)
+
+-- ==========================================
+-- ⭐️ PART 2: ฟังก์ชันสร้าง UI หลัก
+-- ==========================================
+function LoadMainUI()
+    local sg = Instance.new("ScreenGui")
+    sg.Name = "PHURI_HUB_BLADE_BALL_V4"
+    sg.ResetOnSpawn = false
+    
+    -- ซ่อน UI
+    if gethui then sg.Parent = gethui()
+    elseif syn and syn.protect_gui then syn.protect_gui(sg) sg.Parent = game:GetService("CoreGui")
+    elseif protect_gui then protect_gui(sg) sg.Parent = game:GetService("CoreGui")
+    else sg.Parent = game:GetService("CoreGui") end
+
+    -- Main Frame
+    local mf = Instance.new("Frame", sg)
+    mf.Size = UDim2.new(0, 480, 0, 320)
+    mf.Position = UDim2.new(0.5, -240, 0.5, -160)
+    mf.BackgroundColor3 = Color3.fromRGB(12, 13, 17)
+    mf.BorderSizePixel = 0
+    mf.Active = true
+    mf.Draggable = true
+    Instance.new("UICorner", mf).CornerRadius = UDim.new(0, 12)
+    local stroke = Instance.new("UIStroke", mf)
+    stroke.Color = Color3.fromRGB(255, 72, 92)
+    stroke.Thickness = 2
+
+    -- ⭐️ Header
+    local header = Instance.new("Frame", mf)
+    header.Size = UDim2.new(1, 0, 0, 40)
+    header.BackgroundColor3 = Color3.fromRGB(18, 19, 24)
+    header.BorderSizePixel = 0
+    Instance.new("UICorner", header).CornerRadius = UDim.new(0, 12)
+
+    local title = Instance.new("TextLabel", header)
+    title.Size = UDim2.new(1, -50, 1, 0)
+    title.Position = UDim2.new(0, 15, 0, 0)
+    title.BackgroundTransparency = 1
+    title.Text = "⚔️ PHURI HUB/BLADE BALL"
+    title.TextColor3 = Color3.fromRGB(255, 72, 92)
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 16
+    title.TextXAlignment = Enum.TextXAlignment.Left
+
+    -- ⭐️ ปุ่มปิดสคริปต์
+    local closeBtn = Instance.new("TextButton", header)
+    closeBtn.Size = UDim2.new(0, 30, 0, 30)
+    closeBtn.Position = UDim2.new(1, -40, 0, 5)
+    closeBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+    closeBtn.Text = "X"
+    closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    closeBtn.Font = Enum.Font.GothamBold
+    closeBtn.TextSize = 14
+    closeBtn.BorderSizePixel = 0
+    Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 6)
+    closeBtn.MouseButton1Click:Connect(function()
+        sg:Destroy() -- ⭐️ ลบ UI ทิ้ง
+        print("ปิด PHURI HUB แล้ว")
+    end)
+
+    -- Sidebar
+    local sidebar = Instance.new("Frame", mf)
+    sidebar.Size = UDim2.new(0, 120, 1, -50)
+    sidebar.Position = UDim2.new(0, 10, 0, 45)
+    sidebar.BackgroundColor3 = Color3.fromRGB(18, 19, 24)
+    sidebar.BorderSizePixel = 0
+    Instance.new("UICorner", sidebar).CornerRadius = UDim.new(0, 8)
+    local sideLayout = Instance.new("UIListLayout", sidebar)
+    sideLayout.Padding = UDim.new(0, 8)
+    sideLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    sideLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+
+    local content = Instance.new("Frame", mf)
+    content.Size = UDim2.new(1, -140, 1, -50)
+    content.Position = UDim2.new(0, 130, 0, 45)
+    content.BackgroundTransparency = 1
+
+    local function createPage(name)
+        local page = Instance.new("Frame", content)
+        page.Name = name
+        page.Size = UDim2.new(1, 0, 1, 0)
+        page.BackgroundTransparency = 1
+        page.Visible = false
+        return page
+    end
+
+    local pageMain = createPage("Main")
+    local pageSettings = createPage("Settings")
+    local pageVisual = createPage("Visual")
+
+    local function switchTab(pageToShow)
+        pageMain.Visible = false
+        pageSettings.Visible = false
+        pageVisual.Visible = false
+        pageToShow.Visible = true
+    end
+
+    local function createSidebarButton(text, page)
+        local btn = Instance.new("TextButton", sidebar)
+        btn.Size = UDim2.new(1, -20, 0, 40)
+        btn.BackgroundColor3 = Color3.fromRGB(30, 31, 39)
+        btn.Text = text
+        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        btn.Font = Enum.Font.GothamBold
+        btn.TextSize = 13
+        btn.BorderSizePixel = 0
+        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+        btn.MouseButton1Click:Connect(function() switchTab(page) end)
+    end
+
+    createSidebarButton("⚔️ Main", pageMain)
+    createSidebarButton("⚙️ Settings", pageSettings)
+    createSidebarButton("👁️ Visual", pageVisual)
+
+    local function createToggle(parent, text, key, callback)
+        local btn = Instance.new("TextButton", parent)
+        btn.Size = UDim2.new(1, -20, 0, 40)
+        btn.Position = UDim2.new(0, 10, 0, #parent:GetChildren() * 45)
+        btn.BackgroundColor3 = Color3.fromRGB(30, 20, 50)
+        btn.Text = text .. ": ปิด"
+        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        btn.Font = Enum.Font.GothamBold
+        btn.TextSize = 13
+        btn.BorderSizePixel = 0
+        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+        local isOn = false
+        btn.MouseButton1Click:Connect(function()
+            isOn = not isOn
+            F[key] = isOn
+            btn.Text = text .. (isOn and ": เปิด" or ": ปิด")
+            btn.BackgroundColor3 = isOn and Color3.fromRGB(0, 120, 80) or Color3.fromRGB(30, 20, 50)
+            if callback then callback(isOn) end
+        end)
+    end
+
+    local function createSlider(parent, text, key, min, max, default)
+        local frame = Instance.new("Frame", parent)
+        frame.Size = UDim2.new(1, -20, 0, 50)
+        frame.Position = UDim2.new(0, 10, 0, #parent:GetChildren() * 55)
+        frame.BackgroundTransparency = 1
+
+        local label = Instance.new("TextLabel", frame)
+        label.Size = UDim2.new(1, 0, 0, 20)
+        label.BackgroundTransparency = 1
+        label.Text = text .. ": " .. default
+        label.TextColor3 = Color3.fromRGB(255, 255, 255)
+        label.Font = Enum.Font.GothamBold
+        label.TextSize = 12
+        label.TextXAlignment = Enum.TextXAlignment.Left
+
+        local track = Instance.new("Frame", frame)
+        track.Size = UDim2.new(1, 0, 0, 8)
+        track.Position = UDim2.new(0, 0, 0, 30)
+        track.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+        track.Active = true
+        Instance.new("UICorner", track).CornerRadius = UDim.new(1, 0)
+
+        local fill = Instance.new("Frame", track)
+        fill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
+        fill.BackgroundColor3 = Color3.fromRGB(255, 72, 92)
+        Instance.new("UICorner", fill).CornerRadius = UDim.new(1, 0)
+
+        local knob = Instance.new("Frame", fill)
+        knob.Size = UDim2.new(0, 16, 0, 16)
+        knob.Position = UDim2.new(1, -8, 0.5, -8)
+        knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
+
+        local dragging = false
+        track.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                dragging = true
+                mf.Active = false
+            end
+        end)
+        UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                dragging = false
+                mf.Active = true
+            end
+        end)
+        UserInputService.InputChanged:Connect(function(input)
+            if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                local pos = math.clamp((input.Position.X - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
+                fill.Size = UDim2.new(pos, 0, 1, 0)
+                local value = min + ((max - min) * pos)
+                label.Text = text .. ": " .. string.format("%.2f", value)
+                Settings[key] = value
+            end
+        end)
+    end
+
+    createToggle(pageMain, "🛡️ Auto Parry", "AutoParry")
+    createToggle(pageMain, "⚡ Precision Mode", "PrecisionMode", function(state) F.PrecisionMode = state end)
+
+    F.PrecisionMode = true
+    local precisionBtn = pageMain:GetChildren()[2]
+    if precisionBtn then
+        precisionBtn.Text = "⚡ Precision Mode: เปิด"
+        precisionBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 80)
+        local isOn = true
+        for _, conn in pairs(getconnections and getconnections(precisionBtn.MouseButton1Click) or {}) do pcall(function() conn:Disconnect() end) end
+        precisionBtn.MouseButton1Click:Connect(function()
+            isOn = not isOn
+            F.PrecisionMode = isOn
+            precisionBtn.Text = "⚡ Precision Mode" .. (isOn and ": เปิด" or ": ปิด")
+            precisionBtn.BackgroundColor3 = isOn and Color3.fromRGB(0, 120, 80) or Color3.fromRGB(30, 20, 50)
+        end)
+    end
+
+    createSlider(pageSettings, "🎯 Hitbox Size", "HitboxSize", 5, 25, 10)
+    createSlider(pageSettings, "📡 Ping Buffer", "PingBuffer", 0.02, 0.3, 0.08)
+    createSlider(pageSettings, "⏱️ Parry Cooldown", "ParryCooldown", 0.05, 0.5, 0.18)
+
+    createToggle(pageVisual, "⚽ Ball ESP", "BallESP")
+    createToggle(pageVisual, "👤 Player ESP", "PlayerESP")
+
+    switchTab(pageMain)
+end
+
+-- ==========================================
+-- ⭐️ PART 3: ระบบ AUTO PARRY (ทำงานเบื้องหลัง)
+-- ==========================================
+local function GetBall()
+    local balls = workspace:FindFirstChild("Balls")
+    if balls then
+        for _, ball in pairs(balls:GetChildren()) do
+            if ball:IsA("BasePart") then return ball end
+        end
+    end
+    for _, obj in pairs(workspace:GetChildren()) do
+        if obj:IsA("BasePart") and (obj.Name == "Ball" or obj.Name:find("Ball")) then return obj end
+    end
+    return nil
+end
+
+local function FireParry()
+    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F, false, game)
+    task.wait(0.01)
+    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F, false, game)
+end
+
+RunService.RenderStepped:Connect(function()
+    if not F.AutoParry then return end
+    if tick() - LastParry < Settings.ParryCooldown then return end
+
+    local ball = GetBall()
+    if not ball then return end
+
+    if not F.PrecisionMode then
+        local distance = (ball.Position - RootPart.Position).Magnitude
+        if distance < Settings.HitboxSize then
+            LastParry = tick()
+            task.wait(math.random(3, 8) / 100)
+            FireParry()
+        end
+        return
+    end
+
+    local ping = LocalPlayer:GetNetworkPing()
+    local relPos = ball.Position - RootPart.Position
+    local relVel = ball.AssemblyLinearVelocity - RootPart.AssemblyLinearVelocity
+
+    local timeToClosest = -relPos:Dot(relVel) / math.max(relVel:Dot(relVel), 0.001)
+    if timeToClosest < 0 then return end
+
+    local closestPos = relPos + (relVel * timeToClosest)
+    local closestDistance = closestPos.Magnitude
+    if closestDistance > Settings.HitboxSize then return end
+
+    local offset = math.sqrt(math.max(Settings.HitboxSize^2 - closestDistance^2, 0)) / math.max(relVel.Magnitude, 0.001)
+    local timeToHit = timeToClosest - offset
+
+    if timeToHit <= (ping + Settings.PingBuffer) and timeToHit > -0.1 then
+        LastParry = tick()
+        task.wait(math.random(3, 8) / 100)
+        FireParry()
+    end
+end)
+
+print("PHURI HUB/BLADE BALL V4 (Paid Style) โหลดสำเร็จ!")
+print("✅ มี Loading Screen แบบค่าย")
