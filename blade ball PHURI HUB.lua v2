@@ -1,5 +1,5 @@
 -- ==========================================
--- PHURI HUB/BLADE BALL V4 (Paid Script Style)
+-- PHURI HUB/BLADE BALL V5
 -- ==========================================
 
 local Players = game:GetService("Players")
@@ -20,31 +20,20 @@ LocalPlayer.CharacterAdded:Connect(function(newChar)
     RootPart = newChar:WaitForChild("HumanoidRootPart")
 end)
 
--- ⭐️ ตัวแปรโหลด
-local F = {
-    AutoParry = false,
-    PrecisionMode = true,
-    BallESP = false,
-    PlayerESP = false,
-}
-local Settings = {
-    HitboxSize = 10,
-    PingBuffer = 0.08,
-    ParryCooldown = 0.18,
-}
+-- ตัวแปรสถานะ
+local F = { AutoParry = false, PrecisionMode = true, BallESP = false, PlayerESP = false }
+local Settings = { HitboxSize = 10, PingBuffer = 0.08, ParryCooldown = 0.18 }
 local LastParry = 0
+local LastBall = nil -- เก็บลูกบอลลูกเก่าเพื่อเช็คการเปลี่ยนลูก
 
 -- ==========================================
--- ⭐️ PART 1: สร้าง Loading Screen
+-- PART 1: Loading Screen
 -- ==========================================
 local loadingGui = Instance.new("ScreenGui")
 loadingGui.Name = "PHURI_LOADING"
 loadingGui.ResetOnSpawn = false
-
--- ซ่อน UI อย่างปลอดภัย
 if gethui then loadingGui.Parent = gethui()
 elseif syn and syn.protect_gui then syn.protect_gui(loadingGui) loadingGui.Parent = game:GetService("CoreGui")
-elseif protect_gui then protect_gui(loadingGui) loadingGui.Parent = game:GetService("CoreGui")
 else loadingGui.Parent = game:GetService("CoreGui") end
 
 local loadFrame = Instance.new("Frame", loadingGui)
@@ -52,15 +41,14 @@ loadFrame.Size = UDim2.new(1, 0, 1, 0)
 loadFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 loadFrame.BorderSizePixel = 0
 
--- ⭐️ รูปอนิเมะ (⚠️ เปลี่ยน ID ตรงนี้เป็นรูปที่พี่ชอบ)
+-- ⭐️ รูปอนิเมะ (เปลี่ยน ID ตรงนี้)
 local animeImg = Instance.new("ImageLabel", loadFrame)
 animeImg.Size = UDim2.new(0, 300, 0, 300)
 animeImg.Position = UDim2.new(0.5, -150, 0.5, -180)
 animeImg.BackgroundTransparency = 1
-animeImg.Image = "rbxassetid://1512279986" -- ⭐️ เปลี่ยน ID รูปอนิเมะตรงนี้
+animeImg.Image = "rbxassetid://1512279986"
 animeImg.ScaleType = Enum.ScaleType.Fit
 
--- ⭐️ ชื่อ PHURI HUB
 local loadTitle = Instance.new("TextLabel", loadFrame)
 loadTitle.Size = UDim2.new(1, 0, 0, 60)
 loadTitle.Position = UDim2.new(0, 0, 0.5, 130)
@@ -71,7 +59,6 @@ loadTitle.Font = Enum.Font.GothamBlack
 loadTitle.TextSize = 45
 loadTitle.TextStrokeTransparency = 0.3
 
--- ⭐️ แถบโหลด
 local barBg = Instance.new("Frame", loadFrame)
 barBg.Size = UDim2.new(0, 300, 0, 6)
 barBg.Position = UDim2.new(0.5, -150, 0.5, 200)
@@ -85,35 +72,31 @@ barFill.BackgroundColor3 = Color3.fromRGB(255, 72, 92)
 barFill.BorderSizePixel = 0
 Instance.new("UICorner", barFill).CornerRadius = UDim.new(1, 0)
 
--- ⭐️ อนิเมชันโหลด
 task.spawn(function()
     task.wait(0.5)
     TweenService:Create(barFill, TweenInfo.new(2, Enum.EasingStyle.Quad), {Size = UDim2.new(1, 0, 1, 0)}):Play()
     task.wait(2.5)
-    
-    -- ค่อยๆ จางหายไป
     TweenService:Create(loadFrame, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
     TweenService:Create(animeImg, TweenInfo.new(0.5), {ImageTransparency = 1}):Play()
     TweenService:Create(loadTitle, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
     TweenService:Create(barBg, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
     TweenService:Create(barFill, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
-    
     task.wait(0.6)
     loadingGui:Destroy()
-    
-    -- ⭐️ เรียกฟังก์ชันสร้าง UI หลัก
     LoadMainUI()
 end)
 
 -- ==========================================
--- ⭐️ PART 2: ฟังก์ชันสร้าง UI หลัก
+-- PART 2: Main UI + Minimize
 -- ==========================================
+local MainUI = nil
+
 function LoadMainUI()
-    local sg = Instance.new("ScreenGui")
-    sg.Name = "PHURI_HUB_BLADE_BALL_V4"
-    sg.ResetOnSpawn = false
+    if MainUI then MainUI:Destroy() end
     
-    -- ซ่อน UI
+    local sg = Instance.new("ScreenGui")
+    sg.Name = "PHURI_HUB_BLADE_BALL_V5"
+    sg.ResetOnSpawn = false
     if gethui then sg.Parent = gethui()
     elseif syn and syn.protect_gui then syn.protect_gui(sg) sg.Parent = game:GetService("CoreGui")
     elseif protect_gui then protect_gui(sg) sg.Parent = game:GetService("CoreGui")
@@ -132,7 +115,7 @@ function LoadMainUI()
     stroke.Color = Color3.fromRGB(255, 72, 92)
     stroke.Thickness = 2
 
-    -- ⭐️ Header
+    -- Header
     local header = Instance.new("Frame", mf)
     header.Size = UDim2.new(1, 0, 0, 40)
     header.BackgroundColor3 = Color3.fromRGB(18, 19, 24)
@@ -140,7 +123,7 @@ function LoadMainUI()
     Instance.new("UICorner", header).CornerRadius = UDim.new(0, 12)
 
     local title = Instance.new("TextLabel", header)
-    title.Size = UDim2.new(1, -50, 1, 0)
+    title.Size = UDim2.new(1, -80, 1, 0)
     title.Position = UDim2.new(0, 15, 0, 0)
     title.BackgroundTransparency = 1
     title.Text = "⚔️ PHURI HUB/BLADE BALL"
@@ -149,7 +132,19 @@ function LoadMainUI()
     title.TextSize = 16
     title.TextXAlignment = Enum.TextXAlignment.Left
 
-    -- ⭐️ ปุ่มปิดสคริปต์
+    -- ⭐️ ปุ่มย่อ UI
+    local minBtn = Instance.new("TextButton", header)
+    minBtn.Size = UDim2.new(0, 30, 0, 30)
+    minBtn.Position = UDim2.new(1, -75, 0, 5)
+    minBtn.BackgroundColor3 = Color3.fromRGB(80, 60, 100)
+    minBtn.Text = "—"
+    minBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    minBtn.Font = Enum.Font.GothamBold
+    minBtn.TextSize = 18
+    minBtn.BorderSizePixel = 0
+    Instance.new("UICorner", minBtn).CornerRadius = UDim.new(0, 6)
+
+    -- ⭐️ ปุ่มปิด
     local closeBtn = Instance.new("TextButton", header)
     closeBtn.Size = UDim2.new(0, 30, 0, 30)
     closeBtn.Position = UDim2.new(1, -40, 0, 5)
@@ -160,9 +155,57 @@ function LoadMainUI()
     closeBtn.TextSize = 14
     closeBtn.BorderSizePixel = 0
     Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 6)
+
+    -- ⭐️ ปุ่มไอคอนเล็ก (ตอนย่อ)
+    local smallBtn = Instance.new("TextButton", sg)
+    smallBtn.Size = UDim2.new(0, 60, 0, 60)
+    smallBtn.Position = UDim2.new(0, 20, 0.5, -30)
+    smallBtn.BackgroundColor3 = Color3.fromRGB(12, 13, 17)
+    smallBtn.Text = "PH"
+    smallBtn.TextColor3 = Color3.fromRGB(255, 72, 92)
+    smallBtn.Font = Enum.Font.GothamBlack
+    smallBtn.TextSize = 24
+    smallBtn.BorderSizePixel = 0
+    smallBtn.Visible = false
+    smallBtn.Active = true
+    Instance.new("UICorner", smallBtn).CornerRadius = UDim.new(1, 0)
+    local smallStroke = Instance.new("UIStroke", smallBtn)
+    smallStroke.Color = Color3.fromRGB(255, 72, 92)
+    smallStroke.Thickness = 2
+
+    -- ฟังก์ชันย่อ/ขยาย
+    minBtn.MouseButton1Click:Connect(function()
+        mf.Visible = false
+        smallBtn.Visible = true
+    end)
+    smallBtn.MouseButton1Click:Connect(function()
+        mf.Visible = true
+        smallBtn.Visible = false
+    end)
+
+    -- ทำให้ไอคอนเล็กสามารถลากได้
+    local smallDragging, smallDragStart, smallStartPos = false, nil, nil
+    smallBtn.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            smallDragging = true
+            smallDragStart = input.Position
+            smallStartPos = smallBtn.Position
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if smallDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - smallDragStart
+            smallBtn.Position = UDim2.new(smallStartPos.X.Scale, smallStartPos.X.Offset + delta.X, smallStartPos.Y.Scale, smallStartPos.Y.Offset + delta.Y)
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            smallDragging = false
+        end
+    end)
+
     closeBtn.MouseButton1Click:Connect(function()
-        sg:Destroy() -- ⭐️ ลบ UI ทิ้ง
-        print("ปิด PHURI HUB แล้ว")
+        sg:Destroy()
     end)
 
     -- Sidebar
@@ -323,10 +366,11 @@ function LoadMainUI()
     createToggle(pageVisual, "👤 Player ESP", "PlayerESP")
 
     switchTab(pageMain)
+    MainUI = sg
 end
 
 -- ==========================================
--- ⭐️ PART 3: ระบบ AUTO PARRY (ทำงานเบื้องหลัง)
+-- PART 3: Auto Parry (แก้ไข)
 -- ==========================================
 local function GetBall()
     local balls = workspace:FindFirstChild("Balls")
@@ -342,8 +386,9 @@ local function GetBall()
 end
 
 local function FireParry()
+    -- ⭐️ ส่ง Key Down/Up ห่างกัน 0.05 วิ (กันกดซ้ำ)
     VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F, false, game)
-    task.wait(0.01)
+    task.wait(0.05)
     VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F, false, game)
 end
 
@@ -354,10 +399,18 @@ RunService.RenderStepped:Connect(function()
     local ball = GetBall()
     if not ball then return end
 
+    -- ⭐️ ถ้าเป็นบอลลูกเดิมที่เพิ่งตีไป ให้ข้าม (กันกดซ้ำ)
+    if ball == LastBall and tick() - LastParry < 1 then return end
+
+    -- ⭐️ เช็คว่าบอลเล็งมาที่เราจริงๆ (ถ้ามี Attribute "target")
+    local target = ball:GetAttribute("target")
+    if target and target ~= LocalPlayer.Name then return end
+
     if not F.PrecisionMode then
         local distance = (ball.Position - RootPart.Position).Magnitude
         if distance < Settings.HitboxSize then
             LastParry = tick()
+            LastBall = ball
             task.wait(math.random(3, 8) / 100)
             FireParry()
         end
@@ -380,10 +433,39 @@ RunService.RenderStepped:Connect(function()
 
     if timeToHit <= (ping + Settings.PingBuffer) and timeToHit > -0.1 then
         LastParry = tick()
+        LastBall = ball
         task.wait(math.random(3, 8) / 100)
         FireParry()
     end
 end)
 
-print("PHURI HUB/BLADE BALL V4 (Paid Style) โหลดสำเร็จ!")
-print("✅ มี Loading Screen แบบค่าย")
+-- ==========================================
+-- PART 4: ESP
+-- ==========================================
+RunService.Heartbeat:Connect(function()
+    if F.BallESP then
+        local ball = GetBall()
+        if ball and not ball:FindFirstChild("PHURI_ESP") then
+            local hl = Instance.new("Highlight")
+            hl.Name = "PHURI_ESP"
+            hl.FillColor = Color3.fromRGB(255, 0, 100)
+            hl.OutlineColor = Color3.fromRGB(255, 255, 255)
+            hl.FillTransparency = 0.3
+            hl.Parent = ball
+        end
+    end
+    if F.PlayerESP then
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer and p.Character and not p.Character:FindFirstChild("PHURI_ESP_P") then
+                local hl = Instance.new("Highlight")
+                hl.Name = "PHURI_ESP_P"
+                hl.FillColor = Color3.fromRGB(255, 100, 0)
+                hl.OutlineColor = Color3.fromRGB(255, 255, 255)
+                hl.FillTransparency = 0.5
+                hl.Parent = p.Character
+            end
+        end
+    end
+end)
+
+print("PHURI HUB/BLADE BALL V5 โหลดสำเร็จ!")
