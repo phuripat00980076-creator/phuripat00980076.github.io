@@ -1,5 +1,5 @@
 -- ==========================================
--- PHURI HUB/BLADE BALL V5 (COMPACT EDITION)
+-- PHURI HUB/BLADE BALL V5 (COMPACT FIXED EDITION)
 -- ==========================================
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -17,24 +17,36 @@ local S = { Hitbox = 10, PingBuff = 0.08, Cooldown = 0.18, Radius = 10, Speed = 
 local LastParry, LastBall, orbitAngle = 0, nil, 0
 
 -- ================= PART 1: LOADING =================
-local loadGui = Instance.new("ScreenGui", gethui and gethui() or game.CoreGui)
+local loadGui = Instance.new("ScreenGui", gethui and gethui() or game:GetService("CoreGui"))
 loadGui.ResetOnSpawn = false
 local lf = Instance.new("Frame", loadGui); lf.Size = UDim2.new(1,0,1,0); lf.BackgroundColor3 = Color3.fromRGB(0,0,0); lf.BorderSizePixel = 0
 local img = Instance.new("ImageLabel", lf); img.Size = UDim2.new(0,300,0,300); img.Position = UDim2.new(0.5,-150,0.5,-180); img.BackgroundTransparency = 1; img.Image = "rbxassetid://1512279986"; img.ScaleType = Enum.ScaleType.Fit
 local lt = Instance.new("TextLabel", lf); lt.Size = UDim2.new(1,0,0,60); lt.Position = UDim2.new(0,0,0.5,130); lt.BackgroundTransparency = 1; lt.Text = "PHURI HUB"; lt.TextColor3 = Color3.fromRGB(255,72,92); lt.Font = Enum.Font.GothamBlack; lt.TextSize = 45
 local bb = Instance.new("Frame", lf); bb.Size = UDim2.new(0,300,0,6); bb.Position = UDim2.new(0.5,-150,0.5,200); bb.BackgroundColor3 = Color3.fromRGB(30,30,40); Instance.new("UICorner",bb).CornerRadius = UDim.new(1,0)
 local bf = Instance.new("Frame", bb); bf.Size = UDim2.new(0,0,1,0); bf.BackgroundColor3 = Color3.fromRGB(255,72,92); Instance.new("UICorner",bf).CornerRadius = UDim.new(1,0)
+
 task.spawn(function()
     task.wait(0.5)
     TweenService:Create(bf, TweenInfo.new(1.5), {Size = UDim2.new(1,0,1,0)}):Play()
     task.wait(2)
-    for _, v in pairs(lf:GetChildren()) do TweenService:Create(v, TweenInfo.new(0.5), {BackgroundTransparency = 1, ImageTransparency = 1, TextTransparency = 1}):Play() end
+    -- ⭐️ แก้ไขจุดที่ Error: แยกประเภท Object ก่อนทำการ Tween
+    for _, v in ipairs(lf:GetDescendants()) do
+        pcall(function()
+            if v:IsA("Frame") then
+                TweenService:Create(v, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+            elseif v:IsA("ImageLabel") then
+                TweenService:Create(v, TweenInfo.new(0.5), {ImageTransparency = 1}):Play()
+            elseif v:IsA("TextLabel") then
+                TweenService:Create(v, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
+            end
+        end)
+    end
     task.wait(0.6); loadGui:Destroy(); LoadUI()
 end)
 
 -- ================= PART 2: MAIN UI =================
 function LoadUI()
-    local sg = Instance.new("ScreenGui", gethui and gethui() or game.CoreGui)
+    local sg = Instance.new("ScreenGui", gethui and gethui() or game:GetService("CoreGui"))
     sg.Name = "PHURI_HUB_V5"; sg.ResetOnSpawn = false
     local mf = Instance.new("Frame", sg); mf.Size = UDim2.new(0,480,0,320); mf.Position = UDim2.new(0.5,-240,0.5,-160); mf.BackgroundColor3 = Color3.fromRGB(12,13,17); mf.Active = true; mf.Draggable = true
     Instance.new("UICorner", mf).CornerRadius = UDim.new(0,12); Instance.new("UIStroke", mf).Color = Color3.fromRGB(255,72,92)
@@ -174,4 +186,4 @@ RunService.Heartbeat:Connect(function(dt)
     end
 end)
 
-print("PHURI HUB/BLADE BALL V5 (COMPACT) โหลดสำเร็จ!")
+print("PHURI HUB/BLADE BALL V5 (COMPACT FIXED) โหลดสำเร็จ!")
