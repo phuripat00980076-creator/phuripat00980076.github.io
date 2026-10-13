@@ -1,5 +1,5 @@
 -- ==========================================
--- PHURI HUB/BLADE BALL V5 (COMPACT FIXED EDITION)
+-- PHURI HUB/BLADE BALL V6 (GALAXY EDITION)
 -- ==========================================
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -12,33 +12,39 @@ local Char = LP.Character or LP.CharacterAdded:Wait()
 local HRP = Char:WaitForChild("HumanoidRootPart")
 LP.CharacterAdded:Connect(function(c) Char = c; HRP = c:WaitForChild("HumanoidRootPart") end)
 
-local F = { Parry = false, Precise = true, BallESP = false, PlayerESP = false, Orbit = false }
-local S = { Hitbox = 10, PingBuff = 0.08, Cooldown = 0.18, Radius = 10, Speed = 2.5 }
-local LastParry, LastBall, orbitAngle = 0, nil, 0
+local F = { Parry = false, Precise = true, BallESP = false, PlayerESP = false, Spin = false }
+local S = { Hitbox = 10, PingBuff = 0.08, Cooldown = 0.18, SpinSpeed = 10 }
+local LastParry, LastBall = 0, nil
+
+-- ⭐️ สี Galaxy Theme (ชมพู, ม่วง, ฟ้า)
+local Colors = {
+    Pink = Color3.fromRGB(255, 105, 180),
+    Purple = Color3.fromRGB(138, 43, 226),
+    Blue = Color3.fromRGB(0, 191, 255),
+    Cyan = Color3.fromRGB(0, 255, 255),
+    BG = Color3.fromRGB(12, 12, 20),
+    DarkBG = Color3.fromRGB(18, 18, 28),
+    Button = Color3.fromRGB(30, 30, 45)
+}
 
 -- ================= PART 1: LOADING =================
 local loadGui = Instance.new("ScreenGui", gethui and gethui() or game:GetService("CoreGui"))
 loadGui.ResetOnSpawn = false
 local lf = Instance.new("Frame", loadGui); lf.Size = UDim2.new(1,0,1,0); lf.BackgroundColor3 = Color3.fromRGB(0,0,0); lf.BorderSizePixel = 0
 local img = Instance.new("ImageLabel", lf); img.Size = UDim2.new(0,300,0,300); img.Position = UDim2.new(0.5,-150,0.5,-180); img.BackgroundTransparency = 1; img.Image = "rbxassetid://1512279986"; img.ScaleType = Enum.ScaleType.Fit
-local lt = Instance.new("TextLabel", lf); lt.Size = UDim2.new(1,0,0,60); lt.Position = UDim2.new(0,0,0.5,130); lt.BackgroundTransparency = 1; lt.Text = "PHURI HUB"; lt.TextColor3 = Color3.fromRGB(255,72,92); lt.Font = Enum.Font.GothamBlack; lt.TextSize = 45
+local lt = Instance.new("TextLabel", lf); lt.Size = UDim2.new(1,0,0,60); lt.Position = UDim2.new(0,0,0.5,130); lt.BackgroundTransparency = 1; lt.Text = "PHURI HUB"; lt.TextColor3 = Colors.Pink; lt.Font = Enum.Font.GothamBlack; lt.TextSize = 45
 local bb = Instance.new("Frame", lf); bb.Size = UDim2.new(0,300,0,6); bb.Position = UDim2.new(0.5,-150,0.5,200); bb.BackgroundColor3 = Color3.fromRGB(30,30,40); Instance.new("UICorner",bb).CornerRadius = UDim.new(1,0)
-local bf = Instance.new("Frame", bb); bf.Size = UDim2.new(0,0,1,0); bf.BackgroundColor3 = Color3.fromRGB(255,72,92); Instance.new("UICorner",bf).CornerRadius = UDim.new(1,0)
+local bf = Instance.new("Frame", bb); bf.Size = UDim2.new(0,0,1,0); bf.BackgroundColor3 = Colors.Pink; Instance.new("UICorner",bf).CornerRadius = UDim.new(1,0)
 
 task.spawn(function()
     task.wait(0.5)
     TweenService:Create(bf, TweenInfo.new(1.5), {Size = UDim2.new(1,0,1,0)}):Play()
     task.wait(2)
-    -- ⭐️ แก้ไขจุดที่ Error: แยกประเภท Object ก่อนทำการ Tween
     for _, v in ipairs(lf:GetDescendants()) do
         pcall(function()
-            if v:IsA("Frame") then
-                TweenService:Create(v, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
-            elseif v:IsA("ImageLabel") then
-                TweenService:Create(v, TweenInfo.new(0.5), {ImageTransparency = 1}):Play()
-            elseif v:IsA("TextLabel") then
-                TweenService:Create(v, TweenInfo.new(0.5), {TextTransparency = 1}):Play()
-            end
+            if v:IsA("Frame") then TweenService:Create(v, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+            elseif v:IsA("ImageLabel") then TweenService:Create(v, TweenInfo.new(0.5), {ImageTransparency = 1}):Play()
+            elseif v:IsA("TextLabel") then TweenService:Create(v, TweenInfo.new(0.5), {TextTransparency = 1}):Play() end
         end)
     end
     task.wait(0.6); loadGui:Destroy(); LoadUI()
@@ -47,21 +53,63 @@ end)
 -- ================= PART 2: MAIN UI =================
 function LoadUI()
     local sg = Instance.new("ScreenGui", gethui and gethui() or game:GetService("CoreGui"))
-    sg.Name = "PHURI_HUB_V5"; sg.ResetOnSpawn = false
-    local mf = Instance.new("Frame", sg); mf.Size = UDim2.new(0,480,0,320); mf.Position = UDim2.new(0.5,-240,0.5,-160); mf.BackgroundColor3 = Color3.fromRGB(12,13,17); mf.Active = true; mf.Draggable = true
-    Instance.new("UICorner", mf).CornerRadius = UDim.new(0,12); Instance.new("UIStroke", mf).Color = Color3.fromRGB(255,72,92)
+    sg.Name = "PHURI_HUB_V6"; sg.ResetOnSpawn = false
     
-    local hd = Instance.new("Frame", mf); hd.Size = UDim2.new(1,0,0,40); hd.BackgroundColor3 = Color3.fromRGB(18,19,24); Instance.new("UICorner", hd).CornerRadius = UDim.new(0,12)
-    local tl = Instance.new("TextLabel", hd); tl.Size = UDim2.new(1,-80,1,0); tl.Position = UDim2.new(0,15,0,0); tl.BackgroundTransparency = 1; tl.Text = "⚔️ PHURI HUB/BLADE BALL"; tl.TextColor3 = Color3.fromRGB(255,72,92); tl.Font = Enum.Font.GothamBold; tl.TextSize = 16; tl.TextXAlignment = Enum.TextXAlignment.Left
+    -- Main Frame
+    local mf = Instance.new("Frame", sg); mf.Size = UDim2.new(0,480,0,320); mf.Position = UDim2.new(0.5,-240,0.5,-160); mf.BackgroundColor3 = Colors.BG; mf.Active = true; mf.Draggable = true
+    Instance.new("UICorner", mf).CornerRadius = UDim.new(0,12)
+    
+    -- ⭐️ ขอบ UI แบบเรืองแสงหมุนวน (Galaxy Border)
+    local stroke = Instance.new("UIStroke", mf); stroke.Thickness = 3; stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    local strokeGrad = Instance.new("UIGradient", stroke)
+    strokeGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Colors.Pink),
+        ColorSequenceKeypoint.new(0.33, Colors.Purple),
+        ColorSequenceKeypoint.new(0.66, Colors.Blue),
+        ColorSequenceKeypoint.new(1, Colors.Pink)
+    })
+    -- ลูปหมุนสีขอบ
+    RunService.RenderStepped:Connect(function(dt)
+        strokeGrad.Rotation = (strokeGrad.Rotation + (dt * 60)) % 360
+    end)
+
+    -- Header
+    local hd = Instance.new("Frame", mf); hd.Size = UDim2.new(1,0,0,40); hd.BackgroundColor3 = Colors.DarkBG; Instance.new("UICorner", hd).CornerRadius = UDim.new(0,12)
+    local tl = Instance.new("TextLabel", hd); tl.Size = UDim2.new(1,-80,1,0); tl.Position = UDim2.new(0,15,0,0); tl.BackgroundTransparency = 1; tl.Text = "⚔️ PHURI HUB/BLADE BALL"; tl.TextColor3 = Color3.fromRGB(255,255,255); tl.Font = Enum.Font.GothamBold; tl.TextSize = 16; tl.TextXAlignment = Enum.TextXAlignment.Left
+    
+    -- ⭐️ ชื่อ PHURI เป็นสีชมพู-ฟ้า ตามรูปที่ 2
+    local titleGrad = Instance.new("UIGradient", tl)
+    titleGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Colors.Pink),
+        ColorSequenceKeypoint.new(1, Colors.Cyan)
+    })
     
     local function mkBtn(txt, pos, color)
         local b = Instance.new("TextButton", hd); b.Size = UDim2.new(0,30,0,30); b.Position = pos; b.BackgroundColor3 = color; b.Text = txt; b.TextColor3 = Color3.fromRGB(255,255,255); b.Font = Enum.Font.GothamBold; b.TextSize = 14; Instance.new("UICorner", b).CornerRadius = UDim.new(0,6); return b
     end
-    local minBtn = mkBtn("—", UDim2.new(1,-75,0,5), Color3.fromRGB(80,60,100))
-    local closeBtn = mkBtn("X", UDim2.new(1,-40,0,5), Color3.fromRGB(200,50,50))
+    local minBtn = mkBtn("—", UDim2.new(1,-75,0,5), Colors.Button)
+    local closeBtn = mkBtn("X", UDim2.new(1,-40,0,5), Color3.fromRGB(200, 50, 80))
     
-    local smallBtn = Instance.new("TextButton", sg); smallBtn.Size = UDim2.new(0,60,0,60); smallBtn.Position = UDim2.new(0,20,0.5,-30); smallBtn.BackgroundColor3 = Color3.fromRGB(12,13,17); smallBtn.Text = "PH"; smallBtn.TextColor3 = Color3.fromRGB(255,72,92); smallBtn.Font = Enum.Font.GothamBlack; smallBtn.TextSize = 24; smallBtn.Visible = false; smallBtn.Active = true; Instance.new("UICorner", smallBtn).CornerRadius = UDim.new(1,0); Instance.new("UIStroke", smallBtn).Color = Color3.fromRGB(255,72,92)
+    -- Minimized Button
+    local smallBtn = Instance.new("TextButton", sg); smallBtn.Size = UDim2.new(0,60,0,60); smallBtn.Position = UDim2.new(0,20,0.5,-30); smallBtn.BackgroundColor3 = Colors.BG; smallBtn.Text = "PH"; smallBtn.TextColor3 = Color3.fromRGB(255,255,255); smallBtn.Font = Enum.Font.GothamBlack; smallBtn.TextSize = 24; smallBtn.Visible = false; smallBtn.Active = true; Instance.new("UICorner", smallBtn).CornerRadius = UDim.new(1,0)
     
+    -- ⭐️ ปุ่ม PH ตอนย่อ ใส่สีชมพู-ฟ้า แบบเรืองแสง
+    local smallStroke = Instance.new("UIStroke", smallBtn); smallStroke.Thickness = 2; smallStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    local smallGrad = Instance.new("UIGradient", smallStroke)
+    smallGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Colors.Pink),
+        ColorSequenceKeypoint.new(1, Colors.Cyan)
+    })
+    RunService.RenderStepped:Connect(function(dt)
+        smallGrad.Rotation = (smallGrad.Rotation + (dt * 60)) % 360
+    end)
+    -- ตัวหนังสือ PH ก็ไล่สี
+    local textGrad = Instance.new("UIGradient", smallBtn)
+    textGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Colors.Pink),
+        ColorSequenceKeypoint.new(1, Colors.Cyan)
+    })
+
     minBtn.MouseButton1Click:Connect(function() mf.Visible = false; smallBtn.Visible = true end)
     smallBtn.MouseButton1Click:Connect(function() mf.Visible = true; smallBtn.Visible = false end)
     closeBtn.MouseButton1Click:Connect(function() sg:Destroy() end)
@@ -71,31 +119,32 @@ function LoadUI()
     UIS.InputChanged:Connect(function(i) if sdrag and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then local d = i.Position - sstart; smallBtn.Position = UDim2.new(spos.X.Scale, spos.X.Offset + d.X, spos.Y.Scale, spos.Y.Offset + d.Y) end end)
     UIS.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then sdrag = false end end)
 
-    local sb = Instance.new("Frame", mf); sb.Size = UDim2.new(0,120,1,-50); sb.Position = UDim2.new(0,10,0,45); sb.BackgroundColor3 = Color3.fromRGB(18,19,24); Instance.new("UICorner", sb).CornerRadius = UDim.new(0,8)
+    -- Sidebar
+    local sb = Instance.new("Frame", mf); sb.Size = UDim2.new(0,120,1,-50); sb.Position = UDim2.new(0,10,0,45); sb.BackgroundColor3 = Colors.DarkBG; Instance.new("UICorner", sb).CornerRadius = UDim.new(0,8)
     local sl = Instance.new("UIListLayout", sb); sl.Padding = UDim.new(0,8); sl.HorizontalAlignment = Enum.HorizontalAlignment.Center
     local ct = Instance.new("Frame", mf); ct.Size = UDim2.new(1,-140,1,-50); ct.Position = UDim2.new(0,130,0,45); ct.BackgroundTransparency = 1
     
-    local function mkPage(n) local p = Instance.new("Frame", ct); p.Name = n; p.Size = UDim2.new(1,0,1,0); p.BackgroundTransparency = 1; p.Visible = false; return p end
-    local pMain, pSet, pVis = mkPage("Main"), mkPage("Settings"), mkPage("Visual")
-    local function switch(p) pMain.Visible = false; pSet.Visible = false; pVis.Visible = false; p.Visible = true end
+    local function mkPage(n) local p = Instance.new("Frame", ct); p.Name = n; p.Size = UDim2.new(1,0,1,0); p.BackgroundTransparency = 1; p.Visible = false; local l = Instance.new("UIListLayout", p); l.Padding = UDim.new(0,8); l.HorizontalAlignment = Enum.HorizontalAlignment.Center; return p end
+    local pMain, pSet, pVis, pExtra = mkPage("Main"), mkPage("Settings"), mkPage("Visual"), mkPage("Extra")
+    local function switch(p) pMain.Visible = false; pSet.Visible = false; pVis.Visible = false; pExtra.Visible = false; p.Visible = true end
     
     local function mkSide(txt, pg)
-        local b = Instance.new("TextButton", sb); b.Size = UDim2.new(1,-20,0,40); b.BackgroundColor3 = Color3.fromRGB(30,31,39); b.Text = txt; b.TextColor3 = Color3.fromRGB(255,255,255); b.Font = Enum.Font.GothamBold; b.TextSize = 13; Instance.new("UICorner", b).CornerRadius = UDim.new(0,6)
+        local b = Instance.new("TextButton", sb); b.Size = UDim2.new(1,-20,0,40); b.BackgroundColor3 = Colors.Button; b.Text = txt; b.TextColor3 = Color3.fromRGB(255,255,255); b.Font = Enum.Font.GothamBold; b.TextSize = 13; Instance.new("UICorner", b).CornerRadius = UDim.new(0,6)
         b.MouseButton1Click:Connect(function() switch(pg) end)
     end
-    mkSide("⚔️ Main", pMain); mkSide("⚙️ Settings", pSet); mkSide("👁️ Visual", pVis)
+    mkSide("⚔️ Main", pMain); mkSide("⚙️ Settings", pSet); mkSide("👁️ Visual", pVis); mkSide("🎮 Extra", pExtra)
     
     local function mkToggle(p, txt, k, cb)
-        local b = Instance.new("TextButton", p); b.Size = UDim2.new(1,-20,0,40); b.Position = UDim2.new(0,10,0,#p:GetChildren()*45); b.BackgroundColor3 = Color3.fromRGB(30,20,50); b.Text = txt..": ปิด"; b.TextColor3 = Color3.fromRGB(255,255,255); b.Font = Enum.Font.GothamBold; b.TextSize = 13; Instance.new("UICorner", b).CornerRadius = UDim.new(0,8)
-        local on = false; b.MouseButton1Click:Connect(function() on = not on; F[k] = on; b.Text = txt..(on and ": เปิด" or ": ปิด"); b.BackgroundColor3 = on and Color3.fromRGB(0,120,80) or Color3.fromRGB(30,20,50); if cb then cb(on) end end)
+        local b = Instance.new("TextButton", p); b.Size = UDim2.new(1,-20,0,40); b.BackgroundColor3 = Colors.Button; b.Text = txt..": ปิด"; b.TextColor3 = Color3.fromRGB(255,255,255); b.Font = Enum.Font.GothamBold; b.TextSize = 13; Instance.new("UICorner", b).CornerRadius = UDim.new(0,8)
+        local on = false; b.MouseButton1Click:Connect(function() on = not on; F[k] = on; b.Text = txt..(on and ": เปิด" or ": ปิด"); b.BackgroundColor3 = on and Color3.fromRGB(0,120,80) or Colors.Button; if cb then cb(on) end end)
         return b
     end
     
     local function mkSlider(p, txt, k, mn, mx, df)
-        local f = Instance.new("Frame", p); f.Size = UDim2.new(1,-20,0,50); f.Position = UDim2.new(0,10,0,#p:GetChildren()*55); f.BackgroundTransparency = 1
+        local f = Instance.new("Frame", p); f.Size = UDim2.new(1,-20,0,50); f.BackgroundTransparency = 1
         local l = Instance.new("TextLabel", f); l.Size = UDim2.new(1,0,0,20); l.BackgroundTransparency = 1; l.Text = txt..": "..df; l.TextColor3 = Color3.fromRGB(255,255,255); l.Font = Enum.Font.GothamBold; l.TextSize = 12; l.TextXAlignment = Enum.TextXAlignment.Left
-        local tr = Instance.new("Frame", f); tr.Size = UDim2.new(1,0,0,8); tr.Position = UDim2.new(0,0,0,30); tr.BackgroundColor3 = Color3.fromRGB(40,40,50); tr.Active = true; Instance.new("UICorner", tr).CornerRadius = UDim.new(1,0)
-        local fl = Instance.new("Frame", tr); fl.Size = UDim2.new((df-mn)/(mx-mn),0,1,0); fl.BackgroundColor3 = Color3.fromRGB(255,72,92); Instance.new("UICorner", fl).CornerRadius = UDim.new(1,0)
+        local tr = Instance.new("Frame", f); tr.Size = UDim2.new(1,0,0,8); tr.Position = UDim2.new(0,0,0,30); tr.BackgroundColor3 = Color3.fromRGB(40,40,55); tr.Active = true; Instance.new("UICorner", tr).CornerRadius = UDim.new(1,0)
+        local fl = Instance.new("Frame", tr); fl.Size = UDim2.new((df-mn)/(mx-mn),0,1,0); fl.BackgroundColor3 = Colors.Pink; Instance.new("UICorner", fl).CornerRadius = UDim.new(1,0)
         local kn = Instance.new("Frame", fl); kn.Size = UDim2.new(0,16,0,16); kn.Position = UDim2.new(1,-8,0.5,-8); kn.BackgroundColor3 = Color3.fromRGB(255,255,255); Instance.new("UICorner", kn).CornerRadius = UDim.new(1,0)
         local drg = false
         tr.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then drg = true; mf.Active = false end end)
@@ -105,14 +154,31 @@ function LoadUI()
 
     mkToggle(pMain, "🛡️ Auto Parry", "Parry")
     mkToggle(pMain, "⚡ Precision Mode", "Precise", function(s) F.Precise = s end)
-    mkToggle(pMain, "🌀 Ball Orbit", "Orbit")
     local pb = pMain:GetChildren()[2]; if pb then pb.Text = "⚡ Precision Mode: เปิด"; pb.BackgroundColor3 = Color3.fromRGB(0,120,80) end
+    
     mkSlider(pSet, "🎯 Hitbox Size", "Hitbox", 5,25,10)
     mkSlider(pSet, "📡 Ping Buffer", "PingBuff", 0.02,0.3,0.08)
     mkSlider(pSet, "⏱️ Parry Cooldown", "Cooldown", 0.05,0.5,0.18)
-    mkSlider(pSet, "🌀 Orbit Radius", "Radius", 5,30,10)
+    
     mkToggle(pVis, "⚽ Ball ESP", "BallESP")
     mkToggle(pVis, "👤 Player ESP", "PlayerESP")
+    
+    mkToggle(pExtra, "🌀 Character Spin", "Spin")
+    mkSlider(pExtra, "⚡ Spin Speed", "SpinSpeed", 1, 50, 10)
+    local giveWpnBtn = Instance.new("TextButton", pExtra)
+    giveWpnBtn.Size = UDim2.new(1,-20,0,40); giveWpnBtn.BackgroundColor3 = Colors.Purple; giveWpnBtn.Text = "🎒 Spawn All Weapons"; giveWpnBtn.TextColor3 = Color3.fromRGB(255,255,255); giveWpnBtn.Font = Enum.Font.GothamBold; giveWpnBtn.TextSize = 13; giveWpnBtn.BorderSizePixel = 0
+    Instance.new("UICorner", giveWpnBtn).CornerRadius = UDim.new(0,8)
+    giveWpnBtn.MouseButton1Click:Connect(function()
+        local bp = LP:FindFirstChild("Backpack")
+        if bp then
+            local t = Instance.new("Tool"); t.Name = "PHURI_Weapon_"..math.random(1,100); t.RequiresHandle = true
+            local h = Instance.new("Part", t); h.Name = "Handle"; h.Size = Vector3.new(1, 5, 1); h.BrickColor = BrickColor.new("Really red"); h.Material = Enum.Material.Neon
+            t.Parent = bp
+            if Char and Char:FindFirstChildOfClass("Humanoid") then Char:FindFirstChildOfClass("Humanoid"):EquipTool(t) end
+            giveWpnBtn.Text = "✅ เสกอาวุธสำเร็จ!"; task.wait(1); giveWpnBtn.Text = "🎒 Spawn All Weapons"
+        end
+    end)
+
     switch(pMain)
 end
 
@@ -141,9 +207,7 @@ RunService.RenderStepped:Connect(function()
     if tgt and tgt ~= LP.Name then return end
     
     if not F.Precise then
-        if (ball.Position - HRP.Position).Magnitude < S.Hitbox then
-            LastParry = tick(); LastBall = ball; task.spawn(FireParry)
-        end
+        if (ball.Position - HRP.Position).Magnitude < S.Hitbox then LastParry = tick(); LastBall = ball; task.spawn(FireParry) end
         return
     end
     
@@ -156,34 +220,25 @@ RunService.RenderStepped:Connect(function()
     if cpos.Magnitude > S.Hitbox then return end
     local off = math.sqrt(math.max(S.Hitbox^2 - cpos.Magnitude^2, 0)) / math.max(rv.Magnitude, 0.001)
     local tth = ttc - off
-    if tth <= (ping + S.PingBuff) and tth > -0.1 then
-        LastParry = tick(); LastBall = ball; task.spawn(FireParry)
-    end
+    if tth <= (ping + S.PingBuff) and tth > -0.1 then LastParry = tick(); LastBall = ball; task.spawn(FireParry) end
 end)
 
 RunService.Heartbeat:Connect(function(dt)
+    if F.Spin and HRP then HRP.CFrame = HRP.CFrame * CFrame.Angles(0, math.rad(S.SpinSpeed), 0) end
+
     local ball = GetBall()
-    if F.Orbit and ball then
-        if (ball.Position - HRP.Position).Magnitude < 150 then
-            orbitAngle = orbitAngle + (math.pi * 2) * (S.Speed * dt)
-            local ox = math.cos(orbitAngle) * S.Radius
-            local oz = math.sin(orbitAngle) * S.Radius
-            ball.CFrame = HRP.CFrame * CFrame.new(ox, 3, oz)
-        end
-    end
-    
     if F.BallESP then
         if ball and not ball:FindFirstChild("PH_ESP") then
-            local h = Instance.new("Highlight", ball); h.Name = "PH_ESP"; h.FillColor = Color3.fromRGB(255,0,100); h.OutlineColor = Color3.fromRGB(255,255,255); h.FillTransparency = 0.3
+            local h = Instance.new("Highlight", ball); h.Name = "PH_ESP"; h.FillColor = Colors.Pink; h.OutlineColor = Color3.fromRGB(255,255,255); h.FillTransparency = 0.3
         end
     end
     if F.PlayerESP then
         for _, p in pairs(Players:GetPlayers()) do
             if p ~= LP and p.Character and not p.Character:FindFirstChild("PH_ESP_P") then
-                local h = Instance.new("Highlight", p.Character); h.Name = "PH_ESP_P"; h.FillColor = Color3.fromRGB(255,100,0); h.OutlineColor = Color3.fromRGB(255,255,255); h.FillTransparency = 0.5
+                local h = Instance.new("Highlight", p.Character); h.Name = "PH_ESP_P"; h.FillColor = Colors.Cyan; h.OutlineColor = Color3.fromRGB(255,255,255); h.FillTransparency = 0.5
             end
         end
     end
 end)
 
-print("PHURI HUB/BLADE BALL V5 (COMPACT FIXED) โหลดสำเร็จ!")
+print("PHURI HUB/BLADE BALL V6 (GALAXY) โหลดสำเร็จ!")
