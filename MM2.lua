@@ -1057,40 +1057,44 @@ do
 end
 
 -- =========================================
--- ====== บังคับ UI ขึ้นทันที ==============
+-- ====== Toggle UI + ปุ่มปิด + ลาก ========
 -- =========================================
 tabBtns["Combat"].btn.MouseButton1Click:Fire()
-Main.Visible = true
 
--- ปุ่ม MM2 (กดเปิด/ปิดได้)
+-- ตำแหน่งกลางจอ
+local CENTER_POS = UDim2.new(0.5, -320, 0.5, -210)
+
+-- ฟังก์ชัน toggle: ซ่อน/แสดง + กลับมาที่กลางจอเสมอ
 local function toggleUI()
-    Main.Visible = not Main.Visible
+    if Main.Visible then
+        Main.Visible = false
+    else
+        Main.Position = CENTER_POS   -- รีเซ็ตกลับมาที่กลางจอ
+        Main.Visible = true
+    end
 end
 
+-- ผูกปุ่ม MM2 สีม่วง ให้ทำงานทุกแบบ (PC + มือถือ)
 OpenBtn.MouseButton1Click:Connect(toggleUI)
 OpenBtn.MouseButton1Down:Connect(toggleUI)
 OpenBtn.Activated:Connect(toggleUI)
-OpenBtn.TouchTap:Connect(toggleUI)
+pcall(function() OpenBtn.TouchTap:Connect(toggleUI) end)
 
--- ปุ่มปิด
-local function closeUI()
-    Main.Visible = false
-end
+-- ปุ่ม X (กากบาท) = ซ่อน UI เหมือนกัน (หน้าที่เดียวกับปุ่ม MM2)
+CloseBtn.MouseButton1Click:Connect(toggleUI)
+CloseBtn.MouseButton1Down:Connect(toggleUI)
+CloseBtn.Activated:Connect(toggleUI)
+pcall(function() CloseBtn.TouchTap:Connect(toggleUI) end)
 
-CloseBtn.MouseButton1Click:Connect(closeUI)
-CloseBtn.MouseButton1Down:Connect(closeUI)
-CloseBtn.Activated:Connect(closeUI)
-CloseBtn.TouchTap:Connect(closeUI)
-
--- กดคีย์ RightShift หรือ RightControl เพื่อเปิด/ปิด
+-- กด RightShift บนคีย์บอร์ด = toggle
 UserInputService.InputBegan:Connect(function(input, gpe)
     if gpe then return end
-    if input.KeyCode == Enum.KeyCode.RightShift or input.KeyCode == Enum.KeyCode.RightControl then
-        Main.Visible = not Main.Visible
+    if input.KeyCode == Enum.KeyCode.RightShift then
+        toggleUI()
     end
 end)
 
--- ลาก UI
+-- ลาก UI ได้
 do
     local dragging, dragStart, startPos
     TopBar.InputBegan:Connect(function(input)
@@ -1112,6 +1116,10 @@ do
         end
     end)
 end
+
+-- เปิด UI ครั้งแรกที่กลางจอ
+Main.Position = CENTER_POS
+Main.Visible = true
 
 notify("PHURI MM2 HUB โหลดสำเร็จ!", 5)
 print("PHURI MM2 HUB | VX-Style Loaded")
