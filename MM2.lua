@@ -112,6 +112,9 @@ OpenBtn.BorderSizePixel = 0
 OpenBtn.Parent = ScreenGui
 corner(OpenBtn, 27)
 stroke(OpenBtn, THEME.ACCENT_2, 1.5)
+OpenBtn.Active = true
+OpenBtn.ZIndex = 999
+ScreenGui.DisplayOrder = 999
 
 local Main = Instance.new("Frame")
 Main.Size = UDim2.new(0, 640, 0, 420)
@@ -1059,10 +1062,10 @@ end
 tabBtns["Combat"].btn.MouseButton1Click:Fire()
 Main.Visible = true
 
-OpenBtn.MouseButton1Click:Connect(function()
+OpenBtn.Activated:Connect(function()
     Main.Visible = not Main.Visible
 end)
-CloseBtn.MouseButton1Click:Connect(function()
+CloseBtn.Activated:Connect(function()
     Main.Visible = false
 end)
 
