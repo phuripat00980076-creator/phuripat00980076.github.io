@@ -121,7 +121,7 @@ Main.Size = UDim2.new(0, 640, 0, 420)
 Main.Position = UDim2.new(0.5, -320, 0.5, -210)
 Main.BackgroundColor3 = THEME.BG
 Main.BorderSizePixel = 0
-Main.Visible = false
+Main.Visible = true
 Main.ClipsDescendants = true
 Main.Parent = ScreenGui
 corner(Main, 14)
@@ -1057,18 +1057,40 @@ do
 end
 
 -- =========================================
--- ====== เลือกแท็บเริ่มต้น + แสดง UI ======
+-- ====== บังคับ UI ขึ้นทันที ==============
 -- =========================================
 tabBtns["Combat"].btn.MouseButton1Click:Fire()
 Main.Visible = true
 
-OpenBtn.Activated:Connect(function()
+-- ปุ่ม MM2 (กดเปิด/ปิดได้)
+local function toggleUI()
     Main.Visible = not Main.Visible
-end)
-CloseBtn.Activated:Connect(function()
+end
+
+OpenBtn.MouseButton1Click:Connect(toggleUI)
+OpenBtn.MouseButton1Down:Connect(toggleUI)
+OpenBtn.Activated:Connect(toggleUI)
+OpenBtn.TouchTap:Connect(toggleUI)
+
+-- ปุ่มปิด
+local function closeUI()
     Main.Visible = false
+end
+
+CloseBtn.MouseButton1Click:Connect(closeUI)
+CloseBtn.MouseButton1Down:Connect(closeUI)
+CloseBtn.Activated:Connect(closeUI)
+CloseBtn.TouchTap:Connect(closeUI)
+
+-- กดคีย์ RightShift หรือ RightControl เพื่อเปิด/ปิด
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if gpe then return end
+    if input.KeyCode == Enum.KeyCode.RightShift or input.KeyCode == Enum.KeyCode.RightControl then
+        Main.Visible = not Main.Visible
+    end
 end)
 
+-- ลาก UI
 do
     local dragging, dragStart, startPos
     TopBar.InputBegan:Connect(function(input)
