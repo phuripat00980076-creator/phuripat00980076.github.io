@@ -1,7 +1,3 @@
---[[
-    APEXON X HUB - UI Library
-    ธีมแดง-ดำ | จากฐาน Nousigi/Banana UI
-]]
 if getgenv().Apexon then 
 	if game.CoreGui:FindFirstChild("APEXON X HUB GUI") then
 		for i, v in ipairs(game.CoreGui:GetChildren()) do
