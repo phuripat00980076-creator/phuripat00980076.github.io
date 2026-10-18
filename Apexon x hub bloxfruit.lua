@@ -1,3 +1,7 @@
+--[[
+    APEXON X HUB - UI Library
+    ธีมแดง-ดำ | จากฐาน APEXON/Banana UI
+]]
 if getgenv().Apexon then 
 	if game.CoreGui:FindFirstChild("APEXON X HUB GUI") then
 		for i, v in ipairs(game.CoreGui:GetChildren()) do
@@ -14,7 +18,7 @@ local T1UIColor = {
 	["Border Color"] = Color3.fromRGB(220, 30, 40),
 	["Click Effect Color"] = Color3.fromRGB(230, 230, 230),
 	["Setting Icon Color"] = Color3.fromRGB(230, 230, 230),
-	["Logo Image"] = "rbxassetid://5009915795",
+	["Logo Image"] = "rbxassetid://7733960981" -- เปลี่ยนเป็น rbxassetid โลโก้แดง APEXON,
 	["Search Icon Color"] = Color3.fromRGB(240, 240, 230),
 	["Search Icon Highlight Color"] = Color3.fromRGB(220, 30, 40),
 	["GUI Text Color"] = Color3.fromRGB(235, 235, 230),
@@ -336,7 +340,7 @@ local libCreateNoti = function(Setting)
 	local colorG = tostring(Library_Function.Getcolor(getgenv().UIColor['Title Text Color'])[2])
 	local colorB = tostring(Library_Function.Getcolor(getgenv().UIColor['Title Text Color'])[3])
 	local color = colorR .. ',' .. colorG .. ',' .. colorB
-    TextLabelNoti.Text = "<font color=\"rgb(" .. tostring(color or "255,206,27") .. ")\">" .. tostring("APEXON X HUB") .. "</font> " .. tostring(getgenv().TitleNameNoti or "")
+    TextLabelNoti.Text = "<font color=\"rgb(" .. tostring(color or "220, 30, 40") .. ")\">" .. tostring("APEXON X HUB") .. "</font> " .. tostring(getgenv().TitleNameNoti or "")
     
 	TextLabelNoti.Name = "TextLabelNoti"
 	TextLabelNoti.Parent = Topnoti
@@ -578,7 +582,7 @@ function Library:CreateWindow(Setting)
 	local colorG = tostring(Library_Function.Getcolor(getgenv().UIColor['Title Text Color'])[2])
 	local colorB = tostring(Library_Function.Getcolor(getgenv().UIColor['Title Text Color'])[3])
 	local color = colorR .. ',' .. colorG .. ',' .. colorB
-    TextLabelMain.Text = "<font color=\"rgb(" .. tostring(color or "255,206,27") .. ")\">" .. tostring(TitleNameMain or "APEXON X HUB") .. "</font> " .. tostring(getgenv().MainDesc or "")
+    TextLabelMain.Text = "<font color=\"rgb(" .. tostring(color or "220, 30, 40") .. ")\">" .. tostring(TitleNameMain or "APEXON X HUB") .. "</font> " .. tostring(getgenv().MainDesc or "")
 
 	PageControl.Name = "Background1"
 	PageControl.Parent = Concacmain
